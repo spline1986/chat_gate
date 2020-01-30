@@ -1,0 +1,5 @@
+{
+	"token": "<TOKEN>",
+	"in": "/tmp/tg_in",
+	"out": "/tmp/tg_out"
+}
