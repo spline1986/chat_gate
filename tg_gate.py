@@ -48,7 +48,7 @@ def get_text(message):
         print("Message from chat {}".format(message.chat.id))
     user = "{} {}".format(message.from_user.first_name,
                           message.from_user.last_name)
-    write("<{}>: {}".format(user.strip(), message.text))
+    write("<{}> {}".format(user.strip(), message.text))
 
 
 @bot.message_handler(content_types=["audio", "document", "photo"])
@@ -64,8 +64,16 @@ def get_photo(message):
     ext = file_info.file_path.split(".")[-1]
     f = bot.download_file(file_info.file_path)
     open("files/{}.{}".format(file_id, ext), "wb").write(f)
+    user = "{} {}".format(message.from_user.first_name,
+                          message.from_user.last_name)
+    write("<{}> {}".format(user.strip(),
+                           "http://{}/files/{}.{}".format(cfg["host"],
+                                                          file_id,
+                                                          ext)))
 
 
+if not os.path.exists("files"):
+    os.mkdir("files")
 create_fifo(cfg["tg"]["out"])
 create_fifo(cfg["tg"]["in"])
 listener_thread = ListenerThread("Telegram fifo listener")
