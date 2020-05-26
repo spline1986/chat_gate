@@ -51,6 +51,7 @@ class ListenerThread(Thread):
     def run(self):
         sleep(5)
         while True:
+            sleep(0.1)
             with open(cfg["xmpp"]["in"], "r") as fifo_read:
                 s = fifo_read.read().strip()
                 xmpp.resend(s)

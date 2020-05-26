@@ -33,15 +33,19 @@ class ListenerThread(Thread):
     def run(self):
         sleep(5)
         while True:
+            sleep(0.1)
             with open(cfg["tg"]["in"], "r") as fifo_read:
                 s = fifo_read.read().strip()
-                bot.send_message(233587284, s)
+                if cfg["tg"]["chat"]:
+                    bot.send_message(cfg["tg"]["chat"], s)
             sleep(.5)
 
 
 @bot.message_handler(content_types=['text'])
 def get_text(message):
     "Write incoming message into out FIFO."
+    if not cfg["tg"]["chat"]:
+        print("Message from chat {}".format(message.chat.id))
     user = "{} {}".format(message.from_user.first_name,
                           message.from_user.last_name)
     write("<{}>: {}".format(user.strip(), message.text))

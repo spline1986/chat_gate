@@ -1,7 +1,8 @@
 {
 	"tg": {
 		"enabled": true,
-		"token": "<TOKEN>",
+		"token": "",
+		"chat": false,
 		"in": "/tmp/tg_in",
 		"out": "/tmp/tg_out"
 	},
@@ -9,7 +10,8 @@
 		"enabled": true,
 		"jid": "",
 		"password": "",
-		"conf": "",
+		"room": "",
+		"nick": "",
 		"in": "/tmp/xmpp_in",
 		"out": "/tmp/xmpp_out"
 	}
