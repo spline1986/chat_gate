@@ -1,0 +1,16 @@
+{
+	"tg": {
+		"enabled": true,
+		"token": "<TOKEN>",
+		"in": "/tmp/tg_in",
+		"out": "/tmp/tg_out"
+	},
+	"xmpp": {
+		"enabled": true,
+		"jid": "",
+		"password": "",
+		"conf": "",
+		"in": "/tmp/xmpp_in",
+		"out": "/tmp/xmpp_out"
+	}
+}

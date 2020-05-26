@@ -7,8 +7,8 @@ from threading import Thread
 from time import sleep
 
 
-cfg = json.loads(open("tg_gate.json").read())
-bot = telebot.TeleBot(cfg["token"])
+cfg = json.loads(open("config.json").read())
+bot = telebot.TeleBot(cfg["tg"]["token"])
 
 
 def create_fifo(path):
@@ -20,7 +20,7 @@ def create_fifo(path):
 
 def write(s):
     "Write s into output FIFO."
-    with open(cfg["out"], "w") as write_fifo:
+    with open(cfg["tg"]["out"], "w") as write_fifo:
         write_fifo.write(s + "\n")
 
 
@@ -33,7 +33,7 @@ class ListenerThread(Thread):
     def run(self):
         sleep(5)
         while True:
-            with open(cfg["in"], "r") as fifo_read:
+            with open(cfg["tg"]["in"], "r") as fifo_read:
                 s = fifo_read.read().strip()
                 bot.send_message(233587284, s)
             sleep(.5)
@@ -62,8 +62,8 @@ def get_photo(message):
     open("files/{}.{}".format(file_id, ext), "wb").write(f)
 
 
-create_fifo(cfg["out"])
-create_fifo(cfg["in"])
+create_fifo(cfg["tg"]["out"])
+create_fifo(cfg["tg"]["in"])
 listener_thread = ListenerThread("Telegram fifo listener")
 listener_thread.start()
 bot.polling()
