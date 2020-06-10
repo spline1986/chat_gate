@@ -1,8 +1,10 @@
 {
+	"host": "",
 	"tg": {
 		"enabled": true,
 		"token": "",
-		"chat": false,
+		"chat":  false,
+		"proxy": "",
 		"in": "/tmp/tg_in",
 		"out": "/tmp/tg_out"
 	},

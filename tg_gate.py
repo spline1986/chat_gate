@@ -2,13 +2,19 @@
 
 import json
 import os
-import telebot
+from telegram.ext import Filters, MessageHandler, Updater
+from telegram import File
 from threading import Thread
 from time import sleep
 
 
 cfg = json.loads(open("config.json").read())
-bot = telebot.TeleBot(cfg["tg"]["token"])
+kwargs = {}
+if cfg["tg"]["proxy"]:
+    kwargs["proxy_url"] = cfg["tg"]["proxy"]
+updater = Updater(token=cfg["tg"]["token"], use_context=True,
+                  request_kwargs=kwargs)
+dispatcher = updater.dispatcher
 
 
 def create_fifo(path):
@@ -33,12 +39,11 @@ class ListenerThread(Thread):
     def run(self):
         sleep(5)
         while True:
-            sleep(0.1)
             with open(cfg["tg"]["in"], "r") as fifo_read:
                 s = fifo_read.read().strip()
                 if cfg["tg"]["chat"]:
-                    bot.send_message(cfg["tg"]["chat"], s)
-            sleep(.5)
+                    updater.bot.send_message(cfg["tg"]["chat"], s)
+            sleep(1)
 
 
 def make_username(first, last):
@@ -50,36 +55,56 @@ def make_username(first, last):
     return username
 
 
-@bot.message_handler(content_types=['text'])
-def get_text(message):
-    "Write incoming message into out FIFO."
+def make_text(message, text):
+    firstname = message.from_user.first_name
+    lastname = message.from_user.last_name
+    user = make_username(firstname, lastname)
+    reply = message.reply_to_message
+    if reply:
+        firstname = reply.from_user.first_name
+        lastname = reply.from_user.last_name
+        to = make_username(firstname, lastname)
+        body = "<{}> {}: {}".format(user, to, text)
+    else:
+        body = "<{}> {}".format(user, text)
+    return body
+
+
+def out(update, context):
     if not cfg["tg"]["chat"]:
-        print("Message from chat {}".format(message.chat.id))
-    user = make_username(message.from_user.first_name,
-                         message.from_user.last_name)
-    write("<{}> {}".format(user.strip(), message.text))
+        print(update.effective_chat.id)
+    else:
+        text = make_text(update.message, update.message.text)
+        write(text)
 
 
-@bot.message_handler(content_types=["audio", "document", "photo"])
-def get_photo(message):
-    "Write incoming file into files/ directory."
-    if message.photo:
-        file_id = message.photo[0].file_id
-    elif message.document:
-        file_id = message.document.file_id
-    elif message.audio:
-        file_id = message.audio.file_id
-    file_info = bot.get_file(file_id)
-    ext = file_info.file_path.split(".")[-1]
-    f = bot.download_file(file_info.file_path)
-    open("files/{}.{}".format(file_id, ext), "wb").write(f)
-    user = make_username(message.from_user.first_name,
-                         message.from_user.last_name)
-    write("<{}> {}".format(user.strip(),
-                           "http://{}/files/{}.{}".format(cfg["host"],
-                                                          file_id,
-                                                          ext)))
+def media(update, context):
+    if update.message.photo:
+        file_id = update.message.photo[-1].file_id
+        print(update.message.photo[-1])
+    elif update.message.audio:
+        file_id = update.message.audio.file_id
+    elif update.message.document:
+        file_id = update.message.document.file_id
+    elif update.message.voice:
+        file_id = update.message.voice.file_id
+    f = updater.bot.get_file(file_id)
+    ext = f.file_path.split(".")[-1]
+    filename = f.download(custom_path="files/{}.{}".format(file_id, ext))
+    text = make_text(update.message,
+                     "http://{}/{}\n".format(cfg["host"], filename))
+    write(text)
+    print(update.message.text)
+    if update.message.text:
+        text = make_text(update.message, update.message.text)
+        write(text)
+        print(text)
 
+
+out_handler = MessageHandler(Filters.text & (~Filters.command), out)
+media_handler = MessageHandler(Filters.all, media)
+dispatcher.add_handler(out_handler)
+dispatcher.add_handler(media_handler)
 
 if not os.path.exists("files"):
     os.mkdir("files")
@@ -87,4 +112,4 @@ create_fifo(cfg["tg"]["out"])
 create_fifo(cfg["tg"]["in"])
 listener_thread = ListenerThread("Telegram fifo listener")
 listener_thread.start()
-bot.polling()
+updater.start_polling()
