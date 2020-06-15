@@ -70,9 +70,9 @@ def make_text(message, text):
             if caption:
                 rtext = caption
             else:
-                rtext = "<image>"
+                rtext = "<media>"
         if not rtext: rtext = "..."
-        body = "<{}> > {}: {}\n\n{}".format(user, to, rtext, text)
+        body = "<{}> > {}: {}\n{}".format(user, to, rtext, text)
     else:
         body = "<{}> {}".format(user, text)
     return body
