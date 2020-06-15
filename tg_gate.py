@@ -79,13 +79,15 @@ def out(update, context):
 
 
 def media(update, context):
+    caption = False
     if update.message.photo:
         file_id = update.message.photo[-1].file_id
-        print(update.message.photo[-1])
+        caption = update.message.caption
     elif update.message.audio:
         file_id = update.message.audio.file_id
     elif update.message.document:
         file_id = update.message.document.file_id
+        caption = update.message.caption
     elif update.message.voice:
         file_id = update.message.voice.file_id
     f = updater.bot.get_file(file_id)
@@ -94,11 +96,12 @@ def media(update, context):
     text = make_text(update.message,
                      "http://{}/{}\n".format(cfg["host"], filename))
     write(text)
-    print(update.message.text)
     if update.message.text:
         text = make_text(update.message, update.message.text)
         write(text)
-        print(text)
+    if caption:
+        text = make_text(update.message, caption)
+        write(text)
 
 
 out_handler = MessageHandler(Filters.text & (~Filters.command), out)
