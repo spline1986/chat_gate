@@ -81,24 +81,29 @@ def out(update, context):
 
 def media(update, context):
     caption = False
+    media = False
     if update.message.photo:
         file_id = update.message.photo[-1].file_id
         caption = update.message.caption
+        media = True
     elif update.message.audio:
         file_id = update.message.audio.file_id
+        media = True
     elif update.message.document:
         file_id = update.message.document.file_id
         caption = update.message.caption
+        media = True
     elif update.message.voice:
         file_id = update.message.voice.file_id
-    f = updater.bot.get_file(file_id)
-    ext = f.file_path.split(".")[-1]
-    filename = f.download(custom_path="files/{}.{}".format(file_id, ext))
-    text = make_text(update.message,
-                     "http://{}/{}\n".format(cfg["host"], filename))
-    write(text)
-    if update.message.text:
-        text = make_text(update.message, update.message.text)
+        media = True
+    elif update.message.sticker:
+        caption = "{} <sticker>".format(update.message.sticker.emoji)
+    if media:
+        f = updater.bot.get_file(file_id)
+        ext = f.file_path.split(".")[-1]
+        filename = f.download(custom_path="files/{}.{}".format(file_id, ext))
+        text = make_text(update.message,
+                         "http://{}/{}\n".format(cfg["host"], filename))
         write(text)
     if caption:
         text = make_text(update.message, caption)
