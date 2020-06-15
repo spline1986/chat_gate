@@ -64,7 +64,8 @@ def make_text(message, text):
         firstname = reply.from_user.first_name
         lastname = reply.from_user.last_name
         to = make_username(firstname, lastname)
-        body = "<{}> {}: {}".format(user, to, text)
+        rtext = reply.text
+        body = "<{}> > {}: {}\n\n{}".format(user, to, rtext, text)
     else:
         body = "<{}> {}".format(user, text)
     return body
