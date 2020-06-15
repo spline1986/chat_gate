@@ -65,6 +65,13 @@ def make_text(message, text):
         lastname = reply.from_user.last_name
         to = make_username(firstname, lastname)
         rtext = reply.text
+        if not rtext:
+            file_id, caption = get_media(reply)
+            if caption:
+                rtext = caption
+            else:
+                rtext = "<image>"
+        if not rtext: rtext = "..."
         body = "<{}> > {}: {}\n\n{}".format(user, to, rtext, text)
     else:
         body = "<{}> {}".format(user, text)
@@ -79,31 +86,32 @@ def out(update, context):
         write(text)
 
 
-def media(update, context):
+def get_media(message):
+    file_id = False
     caption = False
-    media = False
-    if update.message.photo:
-        file_id = update.message.photo[-1].file_id
-        caption = update.message.caption
-        media = True
-    elif update.message.audio:
-        file_id = update.message.audio.file_id
-        media = True
-    elif update.message.document:
-        file_id = update.message.document.file_id
-        caption = update.message.caption
-        media = True
-    elif update.message.voice:
-        file_id = update.message.voice.file_id
-        media = True
-    elif update.message.sticker:
-        caption = "{} <sticker>".format(update.message.sticker.emoji)
-    if media:
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        caption = message.caption
+    elif message.audio:
+        file_id = message.audio.file_id
+    elif message.document:
+        file_id = message.document.file_id
+        caption = message.caption
+    elif message.voice:
+        file_id = message.voice.file_id
+    elif message.sticker:
+        caption = "{} <sticker>".format(message.sticker.emoji)
+    return file_id, caption
+
+
+def media(update, context):
+    file_id, caption = get_media(update.message)
+    if file_id:
         f = updater.bot.get_file(file_id)
         ext = f.file_path.split(".")[-1]
         filename = f.download(custom_path="files/{}.{}".format(file_id, ext))
         text = make_text(update.message,
-                         "http://{}/{}\n".format(cfg["host"], filename))
+                         "http://{}/{}".format(cfg["host"], filename))
         write(text)
     if caption:
         text = make_text(update.message, caption)
