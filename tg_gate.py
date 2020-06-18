@@ -2,6 +2,8 @@
 
 import json
 import os
+from datetime import datetime
+from mimetypes import guess_extension
 from telegram.ext import Filters, MessageHandler, Updater
 from telegram import File
 from threading import Thread
@@ -89,29 +91,43 @@ def out(update, context):
 def get_media(message):
     file_id = False
     caption = False
+    filename = False
+    doc = False
     if message.photo:
         file_id = message.photo[-1].file_id
         caption = message.caption
+        filename = "photo"
     elif message.audio:
         file_id = message.audio.file_id
+        filename = "audio"
     elif message.document:
         file_id = message.document.file_id
         caption = message.caption
+        filename = message.document.file_name
+        doc = True
     elif message.voice:
         file_id = message.voice.file_id
+        filename = "voice"
     elif message.sticker:
         caption = "{} <sticker>".format(message.sticker.emoji)
-    return file_id, caption
+    return file_id, filename, caption, doc
 
 
 def media(update, context):
-    file_id, caption = get_media(update.message)
+    file_id, filename, caption, doc = get_media(update.message)
     if file_id:
         f = updater.bot.get_file(file_id)
         ext = f.file_path.split(".")[-1]
-        filename = f.download(custom_path="files/{}.{}".format(file_id, ext))
+        directory = datetime.now().strftime("%Y%m%d%H%M%S")
+        os.mkdir("files/{}".format(directory))
+        if not doc:
+            filename += "." + ext
+        savedname = f.download(
+            custom_path="files/{}/{}".format(directory, filename)
+        )
         text = make_text(update.message,
-                         "http://{}/{}".format(cfg["host"], filename))
+                         "http://{}/{}".format(cfg["host"],
+                                               savedname.replace(" ", "%20")))
         write(text)
     if caption:
         text = make_text(update.message, caption)

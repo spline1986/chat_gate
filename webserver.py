@@ -3,9 +3,9 @@
 from bottle import route, run, static_file
 
 
-@route("/files/<filename>")
-def files(filename):
-    return static_file(filename, root="files")
+@route("/files/<filepath:path>")
+def files(filepath):
+    return static_file(filepath, root="files")
 
 
 @route("/logs/<filename>")
