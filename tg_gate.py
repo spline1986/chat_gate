@@ -68,7 +68,7 @@ def make_text(message, text):
         to = make_username(firstname, lastname)
         rtext = reply.text
         if not rtext:
-            file_id, caption = get_media(reply)
+            file_id, filename, caption, doc = get_media(reply)
             if caption:
                 rtext = caption
             else:
