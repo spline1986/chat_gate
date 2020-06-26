@@ -36,7 +36,11 @@ class Bot(sleekxmpp.ClientXMPP):
 
     def muc_message(self, msg):
         if msg["mucnick"] != self.nick:
-            write("<{}> {}".format(msg["mucnick"], msg["body"]))
+            body = msg["body"]
+            if msg["body"].startswith("/me "):
+                body.replace("/me ", "")
+                write("**{} {}**".format(msg["mucnick"], body))
+            write("<{}> {}".format(msg["mucnick"], body))
 
     def resend(self, message):
         self.send_message(self.room, message, mtype="groupchat")
@@ -51,7 +55,6 @@ class ListenerThread(Thread):
     def run(self):
         sleep(5)
         while True:
-            sleep(0.1)
             with open(cfg["xmpp"]["in"], "r") as fifo_read:
                 s = fifo_read.read().strip()
                 xmpp.resend(s)
