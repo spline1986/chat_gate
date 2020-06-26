@@ -37,10 +37,10 @@ class Bot(sleekxmpp.ClientXMPP):
     def muc_message(self, msg):
         if msg["mucnick"] != self.nick:
             body = msg["body"]
-            if msg["body"].startswith("/me "):
-                body.replace("/me ", "")
-                write("**{} {}**".format(msg["mucnick"], body))
-            write("<{}> {}".format(msg["mucnick"], body))
+            if body.startswith("/me "):
+                write("**{} {}**".format(msg["mucnick"], body[4:]))
+            else:
+                write("<{}> {}".format(msg["mucnick"], body))
 
     def resend(self, message):
         self.send_message(self.room, message, mtype="groupchat")
