@@ -27,34 +27,37 @@ def to_log(s):
 
 class ListenerThread(Thread):
     "Out FIFO listener."
-    def __init__(self, name, flag1, flag2, fout, fin):
+    def __init__(self, name, src):
         Thread.__init__(self)
         self.name = name
-        self.flag1 = flag1
-        self.flag2 = flag2
-        self.fout = fout
-        self.fin = fin
+        self.src = src
+        self.dsts = []
+        for key in cfg.keys():
+            if key != "host" and cfg[key] != src:
+                self.dsts.append(cfg[key])
 
     def run(self):
-        sleep(5)
-        while True:
-            sleep(0.1)
-            if self.flag1:
-                s = read(self.fout)
-                if self.flag2:
-                    write(s, self.fin)
-                    to_log(s)
+        if self.src["enabled"]:
+            sleep(5)
+            while True:
+                sleep(0.1)
+                s = read(self.src["out"])
+                to_log(s)
+                for dst in self.dsts:
+                    if dst["enabled"]:
+                        write(s, dst["in"])
 
 
 def load_config():
     "Loads config.json into cfg variable."
     return json.loads(open("config.json").read())
 
-
 if not os.path.exists("logs"):
     os.mkdir("logs")
 cfg = load_config()
-tg_dispatcher = ListenerThread("tg_dispatch", cfg["tg"]["enabled"], cfg["xmpp"]["enabled"], cfg["tg"]["out"], cfg["xmpp"]["in"])
+tg_dispatcher = ListenerThread("tg_dispatch", cfg["tg"])
 tg_dispatcher.start()
-xmpp_dispatcher = ListenerThread("xmpp_disatch", cfg["xmpp"]["enabled"], cfg["tg"]["enabled"], cfg["xmpp"]["out"], cfg["tg"]["in"])
+xmpp_dispatcher = ListenerThread("xmpp_dispatch", cfg["xmpp"])
 xmpp_dispatcher.start()
+irc_dispatcher = ListenerThread("irc_dispatch", cfg["irc"])
+irc_dispatcher.start()

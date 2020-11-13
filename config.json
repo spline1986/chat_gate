@@ -16,5 +16,15 @@
 		"nick": "",
 		"in": "/tmp/xmpp_in",
 		"out": "/tmp/xmpp_out"
+	},
+	"irc": {
+		"enabled": true,
+		"msg_size": 140,
+		"host": "",
+		"port": 6667,
+		"nickname": "",
+		"channel": "",
+		"in": "/tmp/irc_in",
+		"out": "/tmp/irc_out"
 	}
 }
